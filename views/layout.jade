@@ -1,0 +1,26 @@
+doctype 5
+html
+  head
+    title Title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/bootstrap.css')
+    link(rel='stylesheet', href='/stylesheets/bootstrap-responsive.css')
+  body
+      script(src='/javascripts/jquery-1.8.0.min.js')
+      script(src='/javascripts/bootstrap.js')
+      script(src='/socket.io/socket.io.js')
+      -if (href === '') {
+      script(src='/javascripts/main.js')
+      - } else {
+      script(src='/javascripts/serverInform.js')
+      - }
+      div.navbar
+        div.navbar-inner
+          ul.nav
+            li
+              a(href="http://127.0.0.1:3000") Main
+            -if (href !== '') {
+            li
+              a &gt; #{href}
+            - }
+    block content

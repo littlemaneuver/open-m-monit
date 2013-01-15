@@ -1,0 +1,10 @@
+[{
+    "username": "admin",
+    "password": "pass",
+    "hostname": "hot.monit.org"
+},
+ {
+     "username": "admin1",
+     "password": "pass1",
+     "hostname": "thehotest.monit.org"
+ }]
