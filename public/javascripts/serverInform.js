@@ -1,26 +1,45 @@
 $(document).ready(function () {
 	var serverInfo = io.connect('http://localhost:3000/server'),
 		content = $('.content');
-	var buildInform = function (data) {
-		var prop,
-			prop2,
-			table = $('<table/>', {
-				"class": "table table-bordered table-hover"
-			}),
-			htr = $('<tr/>'),
-			btr = $('<tr/>');
-		for (prop in data) {
-			if (typeof data[prop] === 'object') {
-				for (prop2 in data[prop]) {
-					htr.append('<th>' + prop2 + '</th>');
-					btr.append('<td>' + data[prop][prop2] + '</td>');
-				}
-			} else {
-				htr.append('<th>' + prop + '</th>');
-				btr.append('<td>' + data[prop] + '</td>');
-			}
-		}
-		return table.append($('<thead/>').append(htr)).append($('<tbody/>').append(btr));
+	var getUptime = function (seconds) {
+        var kof = Math.floor(seconds/86400),
+            div = seconds - kof*86400,
+            days = (kof > 0) ? kof : 0,
+            hours,
+            minutes;
+        kof = Math.floor(div/3600);
+        hours = (kof > 0) ? kof : 0;
+        div -= kof*3600;
+        kof = Math.floor(div/60);
+        minutes = (kof > 0) ? kof : 0;
+        minutes = Math.floor(minutes);
+        return "" + days + "d :" + hours + "h :" + minutes + "m";
+        },
+        buildInform = function (data) {
+            var prop,
+                prop2,
+                table = $('<table/>', {
+                    "class": "table table-bordered table-hover"
+                }),
+                htr = $('<tr/>'),
+                btr = $('<tr/>');
+            for (prop in data) {
+                if (typeof data[prop] === 'object') {
+                    for (prop2 in data[prop]) {
+                        htr.append('<th>' + prop2 + '</th>');
+                        btr.append('<td>' + data[prop][prop2] + '</td>');
+                    }
+                } else {
+                    if (prop === 'uptime') {
+                        htr.append('<th>' + prop + '</th>');
+                        btr.append('<td>' + getUptime(data[prop]) + '</td>');
+                    } else {
+                        htr.append('<th>' + prop + '</th>');
+                        btr.append('<td>' + data[prop] + '</td>');
+                    }
+                }
+            }
+            return table.append($('<thead/>').append(htr)).append($('<tbody/>').append(btr));
 		},
 		buildTable = function (data) {
 			div = $('<div/>');
