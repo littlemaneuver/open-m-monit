@@ -1,5 +1,5 @@
 $(document).ready(function () {
-	var serverInfo = io.connect(document.URL + 'server'),
+	var serverInfo = io.connect(document.URL.split('/')[0] + '/server'),
 		content = $('.content');
 	var getUptime = function (seconds) {
         var kof = Math.floor(seconds/86400),

@@ -1,4 +1,5 @@
 $(document).ready(function () {
+
 	var socketInfo = io.connect(document.URL + 'info');
 	var total = [],
 		len,
