@@ -1,10 +1,10 @@
 [{
     "username": "admin",
-    "password": "12cluster3",
-    "hostname": "lfc.grid.org.ua:2812"
+    "password": "admin",
+    "hostname": "your.monit.dns:2812"
 },
  {
-     "username": "admin1",
-     "password": "12cluster3",
-     "hostname": "grid.univ.kiev.ua/monit"
+     "username": "admin",
+     "password": "admin",
+     "hostname": "your.monit.dns/2"
  }]

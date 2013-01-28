@@ -1,5 +1,5 @@
 $(document).ready(function () {
-	var socketInfo = io.connect('http://localhost:3000/info');
+	var socketInfo = io.connect(document.URL + 'info');
 	var total = [],
 		len,
 		count = 0;
