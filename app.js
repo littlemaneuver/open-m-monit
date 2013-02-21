@@ -5,7 +5,6 @@
 
 var express = require('express')
   , routes = require('./routes')
-  //, information = require('./routes/information')
   , http = require('http')
   , path = require('path');
 
@@ -16,6 +15,7 @@ var app = express(),
 	fs = require('fs'),
 	xml = require('node-xml2json'),
 	dnsList = JSON.parse(fs.readFileSync('config.json', 'utf-8')),
+    clusters = Object.keys(dnsList),
 	serverInterval,
 	infoInterval;
 
@@ -39,9 +39,13 @@ var findInform = function (hostname, data) {
 	var inform = {};
 	for (var i = 0; i< data.length; i++) {
 		if (data[i].hostname === hostname) {
-			inform.username = data[i].username;
-			inform.password = data[i].password;
-			inform.hostname = data[i].hostname;
+			inform = {
+                username: data[i].username,
+                password: data[i].password,
+			    hostname: data[i].hostname,
+                alias: data[i].alias,
+                grid: data[i].grid
+            };
 		}
 	}
 	return inform;
@@ -50,32 +54,54 @@ var serverInfo = io.of('/server'),
 	serverInformation;
 
 app.get('/', function (req, res) {
+    dnsList = dnsList[clusters[0]];
+    res.redirect('/cluster/' + clusters[0]);
 	clearInterval(serverInterval);
-	console.log(serverInterval);
-	res.render('index', {href: ''});
+
+	//res.render('index', {href: '', dnsList: Object.keys(dnsList)});
+});
+app.get('/cluster/:clusterName', function (req, res) {
+    "use strict";
+    dnsList = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
+    clusters = Object.keys(dnsList);
+    dnsList = dnsList[req.params.clusterName];
+    res.render('index', {clusters: clusters, href: ''});
 });
 app.get('/inform', function (req, res) {
-	var href = req.query.href.replace(/%2F/, '/').replace(/%3A/, ':');
+	var href = req.query.href.replace(/%2F/, '/').replace(/%3A/, ':'),
+        clusterName = req.query.cluster.replace(/%2F/, '/').replace(/%3A/, ':');
+    dnsList = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
+    clusters = Object.keys(dnsList);
+    dnsList = dnsList[clusterName];
 	clearInterval(infoInterval);
-	console.log(infoInterval);
 	serverInformation = findInform(href, dnsList);
-	res.render('index', {href: href});
+	res.render('index', {clusters: clusters,
+        href: serverInformation.hostname,
+        alias: serverInformation.alias});
 });
 
 var refreshServer = function () {
 	var url = 'http://' + serverInformation.username + ':' + serverInformation.password + '@' + serverInformation.hostname + "/_status?format=xml";
 	request({url : url}, function (error, response, body) {
-		body = xml.parser(body).monit;
-		serverInfo.emit('serverInfo', {platform : body.platform, server: body.server, dns: serverInformation.hostname});
+        if (!error && response.statusCode === 200) {
+            body = xml.parser(body).monit;
+            serverInfo.emit('serverInfo', {platform : body.platform, server: body.server, dns: serverInformation.hostname, alias: serverInformation.alias});
+        } else {
+            serverInfo.emit('serverInfo', {platform: {}, server: {}, dns: serverInformation.hostname, message: 'Your server is not available!'});
+        }
 	});
 };
 
 serverInfo.on('connection', function (socket) {
 	var url = 'http://' + serverInformation.username + ':' + serverInformation.password + '@' + serverInformation.hostname + "/_status?format=xml";
 	request({url : url}, function (error, response, body) {
-		body = xml.parser(body).monit;
-		socket.emit('serverInfo', {platform : body.platform, server: body.server, dns: serverInformation.hostname});
-	});
+        if (!error && response.statusCode === 200) {
+            body = xml.parser(body).monit;
+            serverInfo.emit('serverInfo', {platform : body.platform, server: body.server, dns: serverInformation.hostname, alias: serverInformation.alias});
+        } else {
+            serverInfo.emit('serverInfo', {platform: {}, server: {}, dns: serverInformation.hostname, message: 'Your server is not available!'});
+        }
+    });
 	serverInterval = setInterval(refreshServer, 5000);
 });
 
@@ -84,7 +110,11 @@ var info = io.of('/info').on('connection', function (socket) {
 	dnsList.forEach(function (dns, index, list) {
 		var url = 'http://' + dns.username + ':' + dns.password + '@' + dns.hostname + "/_status?format=xml";
 		request({url : url}, function (error, response, body) {
-			socket.emit('data', { body: xml.parser(body), id: index, dns: dns.hostname});
+            if (!error && response.statusCode === 200) {
+                socket.emit('data', { body: xml.parser(body), id: index, dns: dns.hostname, alias: dns.alias});
+            } else {
+                socket.emit('data', { body: {monit:{service:[]}}, id: index, dns: dns.hostname,  message: 'Your server is not available!'});
+            }
 		});
 	});
 	socket.on('sendData', function (data) {
@@ -94,7 +124,11 @@ var info = io.of('/info').on('connection', function (socket) {
 			headers: {'content-type' : 'application/x-www-form-urlencoded'},
 			body: 'action=' + data.action
 		}, function (error, response, body) {
-			info.emit('good', {body: body});
+            if (!error && response.statusCode === 200) {
+                info.emit('good', {body: body});
+            } else {
+                info.emit('bad', {body: body});
+            }
 		});
 	});
 	infoInterval = setInterval(refresh, 5000);
@@ -104,7 +138,11 @@ var refresh = function () {
 	dnsList.forEach(function (dns, index, list) {
 		var url = 'http://' + dns.username + ':' + dns.password + '@' + dns.hostname + "/_status?format=xml";
 		request({url : url}, function (error, response, body) {
-			info.emit('data', { body: xml.parser(body), id: index, dns: dns.hostname});
+            if (!error && response.statusCode === 200) {
+                info.emit('data', { body: xml.parser(body), id: index, dns: dns.hostname, alias: dns.alias});
+            } else {
+                info.emit('data', {body: {monit:{service:[]}}, id: index, dns: dns.hostname,  message: 'Your server is not available!'});
+            }
 		});
 	});
 };

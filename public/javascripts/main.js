@@ -1,11 +1,13 @@
 $(document).ready(function () {
-
-	var socketInfo = io.connect(document.URL + 'info');
+    var url = document.URL.split('/');
+    url.length = 3;
+    url = url.join('/');
+	var socketInfo = io.connect(url + '/info');
 	var total = [],
 		len,
-		count = 0;
+		count = 0,
 		table = $('<table/>', {
-			"class": "table table-bordered table-hover"
+		"class": "table table-bordered table-hover"
 		}),
 		content = $('.content');
 	var getUptime = function (seconds) {
@@ -25,7 +27,7 @@ $(document).ready(function () {
 		buildActionMenu = function (href) {
 			var block = $('<td></td>');
 			block.append($('<i/>', {
-				 "class": "border icon-play",
+				"class": "border icon-play",
 				"data-href": href,
 				"data-action": "start"
 			})).append($('<i/>', {
@@ -40,40 +42,46 @@ $(document).ready(function () {
 				"class": "border icon-eye-close",
 				"data-href": href,
 				"data-action": "unmonitor"
-			}))
+			}));
 			return block;
 		},
 		buildTable = function (data, table) {
 			var dns = data.dns,
-				id = data.id,
-				processes = data.body.monit.service,
-				length = processes.length,
+                alias = data.alias || dns,
+                id = data.id,
+                processes = data.body.monit.service,
+                length = processes.length,
 				row;
 			row = table.find('#' + id);
-			row.append('<td><a class="inform" href="' + dns + '">' + dns + '</a></td>');
-			for (var i = 0; i < length - 1; i += 1) {
-				row.append('<td>' + processes[i].name + '</td>');
-				if (processes[i].uptime) {
-					row.append('<td>' + processes[i].pid + '</td>');
-					row.append('<td>running</td>');
-					row.append('<td>' + getUptime(parseInt(processes[i].uptime, 10)) + '</td>');
-					row.append('<td>' + processes[i].cpu.percenttotal + '%</td>');
-					row.append('<td>' + processes[i].memory.percenttotal + '% [' + processes[i].memory.kilobytetotal + 'kb]</td>');
-					row.append(buildActionMenu(dns + '/' + processes[i].name));
-				} else {
-					row.addClass('error');
-					row.append('<td></td>');
-					row.append('<td>stopped</td>');
-					row.append('<td>0</td>');
-					row.append('<td>0</td>');
-					row.append('<td>0</td>');
-					row.append('<td><i class="center icon-eye-open" data-href="' + dns + '/' + processes[i].name + '" data-action="monitor")</i></td>');
-				}
-				row.after('<tr></tr>');
-				row = row.next();
-			}
-			table.find('#' + id + ' td:first-child').attr('rowspan', length);
-		};
+            if (data.message !== undefined) {
+                row.append('<td colspan="4">' + dns + '</td><td colspan="4">' + data.message + '</td>');
+                row.addClass('error');
+            } else {
+                row.append('<td><a class="inform" href="' + dns + '">' + alias + '</a></td>');
+                for (var i = 0; i < length - 1; i += 1) {
+                    row.append('<td>' + processes[i].name + '</td>');
+                    if (processes[i].uptime) {
+                        row.append('<td>' + processes[i].pid + '</td>');
+                        row.append('<td>running</td>');
+                        row.append('<td>' + getUptime(parseInt(processes[i].uptime, 10)) + '</td>');
+                        row.append('<td>' + processes[i].cpu.percenttotal + '%</td>');
+                        row.append('<td>' + processes[i].memory.percenttotal + '% [' + processes[i].memory.kilobytetotal + 'kb]</td>');
+                        row.append(buildActionMenu(dns + '/' + processes[i].name));
+                    } else {
+                        row.addClass('error');
+                        row.append('<td></td>');
+                        row.append('<td>stopped</td>');
+                        row.append('<td>0</td>');
+                        row.append('<td>0</td>');
+                        row.append('<td>0</td>');
+                        row.append('<td><i class="center icon-eye-open" data-href="' + dns + '/' + processes[i].name + '" data-action="monitor")</i></td>');
+                    }
+                    row.after('<tr></tr>');
+                    row = row.next();
+                    }
+                    table.find('#' + id + ' td:first-child').attr('rowspan', length);
+            }
+        };
 	socketInfo.on('data', function (data) {
 		var tbody,
 			i;
@@ -97,7 +105,7 @@ $(document).ready(function () {
 	});
 	socketInfo.on('good', function (data) {
 		console.log(data);
-	})
+	});
 	socketInfo.on('length', function (data) {
 		len = data.length;
 	});
@@ -122,6 +130,6 @@ $(document).ready(function () {
 	});
 	content.delegate('.inform', 'click', function (e) {
 		e.preventDefault();
-		window.location.href = 'inform?href=' + $(this).attr('href');
+		window.location.href = '/inform?href=' + $(this).attr('href') + '&cluster=' + document.URL.split('/')[4];
 	});
 });

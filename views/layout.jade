@@ -17,8 +17,9 @@ html
       div.navbar
         div.navbar-inner
           ul.nav
-            li
-              a(href="/") Main
+            each cluster in clusters
+              li
+                a(href="/cluster/" + cluster)=cluster
             -if (href !== '') {
             li
               a &gt; #{href}
