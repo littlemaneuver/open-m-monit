@@ -3,7 +3,7 @@
 
 ###Clone this repo and do the follow:
 1. Add your monit-servers to config.json **(you should create it)** file like:
->`{"clusterName":
+```{"clusterName":
     [
         {
         "hostname": "serverHostname or ip and port",
@@ -14,7 +14,7 @@
         ....
     ],
     ....
-}`
+}```
 2. Change directory to containing directory
 3. Type `node app`
 Your open-m-monit is on `your.hostname:port`
