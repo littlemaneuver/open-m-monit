@@ -1,56 +1,14 @@
-{
-"cluster1": [
-{
-    "username": "admin",
-    "password": "12cluster3",
-    "hostname": "voms.grid.org.ua:2812",
-    "alias"   : "voms"
-},
-{
-    "username": "admin",
-    "password": "12cluster3",
-    "hostname": "lfc.grid.org.ua:2812",
-    "alias"   : "lfc"
-}],
-"cluster2": [
-{
-    "username": "admin1",
-    "password": "12cluster3",
-    "hostname": "px.grid.org.ua:2812",
-    "alias"   : "px"
-},
-{
-    "username": "admin",
-    "password": "12cluster3",
-    "hostname": "topbdii.grid.org.ua:2812",
-    "alias"   : "topbdii"
-}],
-"cluster3": [
-{
-    "username": "admin",
-    "password": "12cluster3",
-    "hostname": "arc.univ.kiev.ua:2812",
-    "alias"   : "arc"
-},
-{
-    "username": "admin",
-    "password": "12cluster3",
-    "hostname": "gris.univ.kiev.ua:2812",
-    "alias"   : "gris"
-},
-{
-    "username": "admin",
-    "password": "12cluster3",
-    "hostname": "db.cluster.univ.kiev.ua:2812"
-},
-{
-    "username": "admin",
-    "password": "12cluster3",
-    "hostname": "aux.cluster.univ.kiev.ua:2812"
-},
-{
-    "username": "admin",
-    "password": "12cd",
-    "hostname": "google.com.ua"
-}]
-}
+{"cluster1":[
+    {
+        "username": "admin",
+        "password": "",
+        "hostname": "hostname",
+        "alias"   : "aliasname"
+    },
+    {
+        "username": "admin",
+        "password": "",
+        "hostname": "hostname",
+        "alias"   : "aliasname"
+    }
+]}
