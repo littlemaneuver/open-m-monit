@@ -7,7 +7,7 @@ $(document).ready(function () {
 		len,
 		count = 0,
 		table = $('<table/>', {
-		"class": "table table-bordered table-hover"
+		    "class": "table table-bordered table-hover"
 		}),
 		content = $('.content');
 	var getUptime = function (seconds) {
@@ -25,7 +25,7 @@ $(document).ready(function () {
 			return "" + days + "d :" + hours + "h :" + minutes + "m";
 		},
 		buildActionMenu = function (href) {
-			var block = $('<td></td>');
+			var block = $('<td/>');
 			block.append($('<i/>', {
 				"class": "border icon-play",
 				"data-href": href,
@@ -54,19 +54,19 @@ $(document).ready(function () {
 				row;
 			row = table.find('#' + id);
             if (data.message !== undefined) {
-                row.append('<td colspan="4">' + dns + '</td><td colspan="4">' + data.message + '</td>');
+                $('<td colspan="4">' + dns + '</td><td colspan="4">' + data.message + '</td>').appendTo(row);
                 row.addClass('error');
             } else {
-                row.append('<td><a class="inform" href="' + dns + '">' + alias + '</a></td>');
+                $('<td><a class="inform" href="' + dns + '">' + alias + '</a></td>').appendTo(row);
                 for (var i = 0; i < length - 1; i += 1) {
-                    row.append('<td>' + processes[i].name + '</td>');
+                    $('<td>' + processes[i].name + '</td>').appendTo(row);
                     if (processes[i].uptime) {
-                        row.append('<td>' + processes[i].pid + '</td>');
-                        row.append('<td>running</td>');
-                        row.append('<td>' + getUptime(parseInt(processes[i].uptime, 10)) + '</td>');
-                        row.append('<td>' + processes[i].cpu.percenttotal + '%</td>');
-                        row.append('<td>' + processes[i].memory.percenttotal + '% [' + processes[i].memory.kilobytetotal + 'kb]</td>');
-                        row.append(buildActionMenu(dns + '/' + processes[i].name));
+                        $('<td>' + processes[i].pid + '</td>').appendTo(row);
+                        $('<td>running</td>').appendTo(row);
+                        $('<td>' + getUptime(parseInt(processes[i].uptime, 10)) + '</td>').appendTo(row);
+                        $('<td>' + processes[i].cpu.percenttotal + '%</td>').appendTo(row);
+                        $('<td>' + processes[i].memory.percenttotal + '% [' + processes[i].memory.kilobytetotal + 'kb]</td>').appendTo(row);
+                        $(buildActionMenu(dns + '/' + processes[i].name)).appendTo(row);
                     } else {
                         row.addClass('error');
                         row.append('<td></td>');

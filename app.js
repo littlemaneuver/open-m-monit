@@ -16,6 +16,7 @@ var app = express(),
 	xml = require('node-xml2json'),
 	dnsList = JSON.parse(fs.readFileSync('config.json', 'utf-8')),
     clusters = Object.keys(dnsList),
+    smallDnsList =  dnsList[Object.keys(dnsList)[0]],
 	serverInterval,
 	infoInterval;
 
@@ -54,27 +55,25 @@ var serverInfo = io.of('/server'),
 	serverInformation;
 
 app.get('/', function (req, res) {
-    dnsList = dnsList[clusters[0]];
     res.redirect('/cluster/' + clusters[0]);
 	clearInterval(serverInterval);
+    clearInterval(infoInterval);
 
 	//res.render('index', {href: '', dnsList: Object.keys(dnsList)});
 });
 app.get('/cluster/:clusterName', function (req, res) {
     "use strict";
-    dnsList = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
-    clusters = Object.keys(dnsList);
-    dnsList = dnsList[req.params.clusterName];
+    smallDnsList = dnsList[req.params.clusterName];
+    clearInterval(infoInterval);
+    clearInterval(serverInterval);
     res.render('index', {clusters: clusters, href: ''});
 });
 app.get('/inform', function (req, res) {
 	var href = req.query.href.replace(/%2F/, '/').replace(/%3A/, ':'),
         clusterName = req.query.cluster.replace(/%2F/, '/').replace(/%3A/, ':');
-    dnsList = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
-    clusters = Object.keys(dnsList);
-    dnsList = dnsList[clusterName];
+    smallDnsList = dnsList[clusterName];
 	clearInterval(infoInterval);
-	serverInformation = findInform(href, dnsList);
+	serverInformation = findInform(href, smallDnsList);
 	res.render('index', {clusters: clusters,
         href: serverInformation.hostname,
         alias: serverInformation.alias});
@@ -106,8 +105,9 @@ serverInfo.on('connection', function (socket) {
 });
 
 var info = io.of('/info').on('connection', function (socket) {
-	socket.emit('length', {length: dnsList.length});
-	dnsList.forEach(function (dns, index, list) {
+    clearInterval(infoInterval);
+	socket.emit('length', {length: smallDnsList.length});
+	smallDnsList.forEach(function (dns, index, list) {
 		var url = 'http://' + dns.username + ':' + dns.password + '@' + dns.hostname + "/_status?format=xml";
 		request({url : url}, function (error, response, body) {
             if (!error && response.statusCode === 200) {
@@ -118,7 +118,7 @@ var info = io.of('/info').on('connection', function (socket) {
 		});
 	});
 	socket.on('sendData', function (data) {
-		var information = findInform(data.href.split('/')[0], dnsList);
+		var information = findInform(data.href.split('/')[0], smallDnsList);
 		request.post({
 			url: "http://" + information.username + ":" + information.password + "@" + data.href,
 			headers: {'content-type' : 'application/x-www-form-urlencoded'},
@@ -135,7 +135,7 @@ var info = io.of('/info').on('connection', function (socket) {
 });
 
 var refresh = function () {
-	dnsList.forEach(function (dns, index, list) {
+	smallDnsList.forEach(function (dns, index, list) {
 		var url = 'http://' + dns.username + ':' + dns.password + '@' + dns.hostname + "/_status?format=xml";
 		request({url : url}, function (error, response, body) {
             if (!error && response.statusCode === 200) {

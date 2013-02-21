@@ -1,5 +1,9 @@
+html {
+    width: 100%;
+}
 body {
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    width: 100%;
 }
 
 a {
@@ -7,4 +11,13 @@ a {
 }
 .border {
     margin-left: 8px;
+}
+.content{
+    width: 100%;
+}
+#load {
+    margin-left: auto;
+    width: 400px;
+    height: 400px;
+    margin: auto;
 }
