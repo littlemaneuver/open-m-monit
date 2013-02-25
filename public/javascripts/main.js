@@ -26,23 +26,47 @@ $(document).ready(function () {
 		},
 		buildActionMenu = function (href) {
 			var block = $('<td/>');
-			block.append($('<i/>', {
+			block.append($('<a/>', {
+                "class": "tooltips",
+                "data-original-title": "Start process",
+                "data-placement": "top",
+                "data-delay": {show: 300, hide: 200},
+                "href": "#"
+            }).append($('<i/>', {
 				"class": "border icon-play",
 				"data-href": href,
 				"data-action": "start"
-			})).append($('<i/>', {
+			}))).append($('<a/>', {
+                "class": "tooltips",
+                "data-original-title": "Stop process",
+                "data-placement": "top",
+                "data-delay": {show: 300, hide: 200},
+                "href": "#"
+            }).append($('<i/>', {
 				"class": "border icon-stop",
 				"data-href": href,
 				"data-action": "stop"
-			})).append($('<i/>', {
+			}))).append($('<a/>', {
+                "class": "tooltips",
+                "data-original-title": "Restart process",
+                "data-placement": "top",
+                "data-delay": {show: 300, hide: 200},
+                "href": "#"
+            }).append($('<i/>', {
 				"class": "border icon-refresh",
 				"data-href": href,
 				"data-action": "restart"
-			})).append($('<i/>', {
+			}))).append($('<a/>', {
+                "class": "tooltips",
+                "data-original-title": "Unwatch process",
+                "data-placement": "top",
+                "data-delay": {show: 300, hide: 200},
+                "href": "#"
+            }).append($('<i/>', {
 				"class": "border icon-eye-close",
 				"data-href": href,
 				"data-action": "unmonitor"
-			}));
+			})));
 			return block;
 		},
 		buildTable = function (data, table) {
@@ -57,26 +81,36 @@ $(document).ready(function () {
                 $('<td colspan="4">' + dns + '</td><td colspan="4">' + data.message + '</td>').appendTo(row);
                 row.addClass('error');
             } else {
-                $('<td><a class="inform" href="' + dns + '">' + alias + '</a></td>').appendTo(row);
+                $('<td/>').append($('<a/>', {"class": "inform",
+                                             "href": dns,
+                                             "text": alias})).appendTo(row);
                 for (var i = 0; i < length - 1; i += 1) {
                     $('<td>' + processes[i].name + '</td>').appendTo(row);
                     if (processes[i].uptime) {
-                        $('<td>' + processes[i].pid + '</td>').appendTo(row);
-                        $('<td>running</td>').appendTo(row);
-                        $('<td>' + getUptime(parseInt(processes[i].uptime, 10)) + '</td>').appendTo(row);
-                        $('<td>' + processes[i].cpu.percenttotal + '%</td>').appendTo(row);
-                        $('<td>' + processes[i].memory.percenttotal + '% [' + processes[i].memory.kilobytetotal + 'kb]</td>').appendTo(row);
+                        $('<td/>', {text: processes[i].pid}).appendTo(row);
+                        $('<td/>', {text: 'running'}).appendTo(row);
+                        $('<td/>', {text: getUptime(parseInt(processes[i].uptime, 10))}).appendTo(row);
+                        $('<td/>', {text: processes[i].cpu.percenttotal + '%'}).appendTo(row);
+                        $('<td/>', {text: processes[i].memory.percenttotal + '% [' + processes[i].memory.kilobytetotal + 'kb]'}).appendTo(row);
                         $(buildActionMenu(dns + '/' + processes[i].name)).appendTo(row);
                     } else {
                         row.addClass('error');
-                        row.append('<td></td>');
-                        row.append('<td>stopped</td>');
-                        row.append('<td>0</td>');
-                        row.append('<td>0</td>');
-                        row.append('<td>0</td>');
-                        row.append('<td><i class="center icon-eye-open" data-href="' + dns + '/' + processes[i].name + '" data-action="monitor")</i></td>');
+                        $('<td/>').appendTo(row);
+                        $('<td/>', {text: 'stopped'}).appendTo(row);
+                        $('<td/>', {text: '0'}).appendTo(row);
+                        $('<td/>', {text: '0'}).appendTo(row);
+                        $('<td/>', {text: '0'}).appendTo(row);
+                        $('<td/>').append($('<a/>', {
+                            "class": "tooltips",
+                            "data-original-title": "Watch process",
+                            "data-placement": "top",
+                            "data-delay": {show: 300, hide: 200},
+                            "href": "#"
+                        }).append($('<i/>',{"class": "center icon-eye-open",
+                                                  "data-href": dns + '/' + processes[i].name,
+                                                  "data-action": "monitor"}))).appendTo(row);
                     }
-                    row.after('<tr></tr>');
+                    row.after($('<tr/>'));
                     row = row.next();
                     }
                     table.find('#' + id + ' td:first-child').attr('rowspan', length);
@@ -87,8 +121,8 @@ $(document).ready(function () {
 			i;
 		total.push(data);
 		if (total.length === len) {
-			table.html('<thead><th>Hostname</th><th>Processes</th><th>PID</th><th>Status</th><th>Uptime</th><th>Total CPU usage</th><th>Total memory usage</th><th>Actions</th></thead><tbody></tbody>');
-			tbody = table.find('tbody');
+			table.html('<thead><th>Hostname</th><th>Processes</th><th>PID</th><th>Status</th><th>Uptime</th><th>Total CPU usage</th><th>Total memory usage</th><th>Actions</th></thead>');
+			tbody = $('<tbody/>').appendTo(table);
 			for (i = 0; i <= len; i++) {
 				tbody.append($('<tr/>', {
 					'id': i
@@ -109,6 +143,14 @@ $(document).ready(function () {
 	socketInfo.on('length', function (data) {
 		len = data.length;
 	});
+    content.delegate('.tooltips', 'mouseover', function () {
+        "use strict";
+        $(this).tooltip('show');
+    });
+    content.delegate('.tooltips', 'mouseout', function () {
+        "use strict";
+        $(this).tooltip('hide');
+    });
 	content.delegate('i', 'mousedown', function () {
 		var self = $(this),
 			selfClass = self.attr('class').split(' ');
@@ -126,6 +168,7 @@ $(document).ready(function () {
 			href = self.data('href'),
 			action = self.data('action');
 		console.log(href, action);
+        self.parent().tooltip('hide');
 		socketInfo.emit('sendData', {href: href, action: action});
 	});
 	content.delegate('.inform', 'click', function (e) {
