@@ -74,7 +74,8 @@ $(document).ready(function () {
                 id = data.id,
                 processes = data.body.monit.service,
                 length = processes.length,
-				row;
+				row,
+                count = 0;
 			row = table.find('#' + id);
             if (data.message !== undefined) {
                 row.append($('<td/>',
@@ -92,35 +93,39 @@ $(document).ready(function () {
                                              "href": dns,
                                              "text": alias})).appendTo(row);
                 for (var i = 0; i < length - 1; i += 1) {
-                    $('<td/>', {text: processes[i].name}).appendTo(row);
-                    if (processes[i].uptime) {
-                        $('<td/>', {text: processes[i].pid}).appendTo(row);
-                        $('<td/>', {text: 'running'}).appendTo(row);
-                        $('<td/>', {text: getUptime(parseInt(processes[i].uptime, 10))}).appendTo(row);
-                        $('<td/>', {text: processes[i].cpu.percenttotal + '%'}).appendTo(row);
-                        $('<td/>', {text: processes[i].memory.percenttotal + '% [' + processes[i].memory.kilobytetotal + 'kb]'}).appendTo(row);
-                        $(buildActionMenu(dns + '/' + processes[i].name)).appendTo(row);
+                    if (processes[i].type == 3) {
+                        $('<td/>', {text: processes[i].name}).appendTo(row);
+                        if (processes[i].uptime) {
+                            $('<td/>', {text: processes[i].pid}).appendTo(row);
+                            $('<td/>', {text: 'running'}).appendTo(row);
+                            $('<td/>', {text: getUptime(parseInt(processes[i].uptime, 10))}).appendTo(row);
+                            $('<td/>', {text: processes[i].cpu.percenttotal + '%'}).appendTo(row);
+                            $('<td/>', {text: processes[i].memory.percenttotal + '% [' + processes[i].memory.kilobytetotal + 'kb]'}).appendTo(row);
+                            $(buildActionMenu(dns + '/' + processes[i].name)).appendTo(row);
+                        } else {
+                            row.addClass('error');
+                            $('<td/>').appendTo(row);
+                            $('<td/>', {text: 'stopped'}).appendTo(row);
+                            $('<td/>', {text: '0'}).appendTo(row);
+                            $('<td/>', {text: '0'}).appendTo(row);
+                            $('<td/>', {text: '0'}).appendTo(row);
+                            $('<td/>').append($('<a/>', {
+                                "class": "tooltips",
+                                "data-original-title": "Watch process",
+                                "data-placement": "top",
+                                "data-delay": {show: 300, hide: 200},
+                                "href": "#"
+                            }).append($('<i/>',{"class": "center icon-eye-open",
+                                                "data-href": dns + '/' + processes[i].name,
+                                                "data-action": "monitor"}))).appendTo(row);
+                        }
+                        row.after($('<tr/>'));
+                        row = row.next();
                     } else {
-                        row.addClass('error');
-                        $('<td/>').appendTo(row);
-                        $('<td/>', {text: 'stopped'}).appendTo(row);
-                        $('<td/>', {text: '0'}).appendTo(row);
-                        $('<td/>', {text: '0'}).appendTo(row);
-                        $('<td/>', {text: '0'}).appendTo(row);
-                        $('<td/>').append($('<a/>', {
-                            "class": "tooltips",
-                            "data-original-title": "Watch process",
-                            "data-placement": "top",
-                            "data-delay": {show: 300, hide: 200},
-                            "href": "#"
-                        }).append($('<i/>',{"class": "center icon-eye-open",
-                                                  "data-href": dns + '/' + processes[i].name,
-                                                  "data-action": "monitor"}))).appendTo(row);
+                        count += 1;
                     }
-                    row.after($('<tr/>'));
-                    row = row.next();
-                    }
-                    table.find('#' + id + ' td:first-child').attr('rowspan', length);
+                }
+                    table.find('#' + id + ' td:first-child').attr('rowspan', length - count);
             }
         };
 	socketInfo.on('data', function (data) {
