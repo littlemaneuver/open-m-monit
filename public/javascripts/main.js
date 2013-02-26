@@ -92,10 +92,10 @@ $(document).ready(function () {
                 $('<td/>').append($('<a/>', {"class": "inform",
                                              "href": dns,
                                              "text": alias})).appendTo(row);
-                for (var i = 0; i < length - 1; i += 1) {
+                for (var i = 0; i < length; i += 1) {
                     if (processes[i].type == 3) {
                         $('<td/>', {text: processes[i].name}).appendTo(row);
-                        if (processes[i].uptime) {
+                        if (processes[i].uptime !== undefined) {
                             $('<td/>', {text: processes[i].pid}).appendTo(row);
                             $('<td/>', {text: 'running'}).appendTo(row);
                             $('<td/>', {text: getUptime(parseInt(processes[i].uptime, 10))}).appendTo(row);
@@ -115,7 +115,7 @@ $(document).ready(function () {
                                 "data-placement": "top",
                                 "data-delay": {show: 300, hide: 200},
                                 "href": "#"
-                            }).append($('<i/>',{"class": "center icon-eye-open",
+                            }).append($('<i/>', {"class": "center icon-eye-open",
                                                 "data-href": dns + '/' + processes[i].name,
                                                 "data-action": "monitor"}))).appendTo(row);
                         }
