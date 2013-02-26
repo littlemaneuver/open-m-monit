@@ -5,7 +5,6 @@ $(document).ready(function () {
 	var socketInfo = io.connect(url + '/info');
 	var total = [],
 		len,
-		count = 0,
 		table = $('<table/>', {
 		    "class": "table table-bordered table-hover"
 		}),
@@ -78,14 +77,22 @@ $(document).ready(function () {
 				row;
 			row = table.find('#' + id);
             if (data.message !== undefined) {
-                $('<td colspan="4">' + dns + '</td><td colspan="4">' + data.message + '</td>').appendTo(row);
+                row.append($('<td/>',
+                    {
+                    "colspan": 4,
+                    "text": dns
+                    })).append($('<td/>',
+                    {
+                    "colspan": 4,
+                    "text": data.message
+                }));
                 row.addClass('error');
             } else {
                 $('<td/>').append($('<a/>', {"class": "inform",
                                              "href": dns,
                                              "text": alias})).appendTo(row);
                 for (var i = 0; i < length - 1; i += 1) {
-                    $('<td>' + processes[i].name + '</td>').appendTo(row);
+                    $('<td/>', {text: processes[i].name}).appendTo(row);
                     if (processes[i].uptime) {
                         $('<td/>', {text: processes[i].pid}).appendTo(row);
                         $('<td/>', {text: 'running'}).appendTo(row);
@@ -132,6 +139,7 @@ $(document).ready(function () {
 				buildTable(data, table);
 			}).promise().done(function () {
 					console.log(total);
+                    $('.tooltip').detach();
 					content.html(table);
 				});
 			total = [];
@@ -168,7 +176,6 @@ $(document).ready(function () {
 			href = self.data('href'),
 			action = self.data('action');
 		console.log(href, action);
-        self.parent().tooltip('hide');
 		socketInfo.emit('sendData', {href: href, action: action});
 	});
 	content.delegate('.inform', 'click', function (e) {
