@@ -1,0 +1,4 @@
+{
+    "type": "unix",
+    "socket": "monit.sock"
+}

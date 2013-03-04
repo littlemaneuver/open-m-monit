@@ -79,11 +79,11 @@ $(document).ready(function () {
 			row = table.find('#' + id);
             if (data.message !== undefined) {
                 row.append($('<td/>',
-                    {
+                {
                     "colspan": 4,
                     "text": dns
-                    })).append($('<td/>',
-                    {
+                })).append($('<td/>',
+                {
                     "colspan": 4,
                     "text": data.message
                 }));

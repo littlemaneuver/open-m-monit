@@ -15,14 +15,22 @@ var app = express(),
 	fs = require('fs'),
 	xml = require('node-xml2json'),
 	dnsList = JSON.parse(fs.readFileSync('config.json', 'utf-8')),
+    connectionConf = JSON.parse(fs.readFileSync('port.json', 'utf-8')),
     clusters = Object.keys(dnsList),
     smallDnsList =  dnsList[Object.keys(dnsList)[0]],
 	serverInterval,
     infoTime = 5000 * (Object.keys(smallDnsList).length + 1),
-	infoInterval;
-
+	infoInterval,
+    port;
+if (connectionConf.type === 'tcp') {
+    port = connectionConf.port;
+} else if (connectionConf.type === 'unix') {
+    port = connectionConf.socket;
+} else {
+    port = 3000;
+}
 app.configure(function(){
-  app.set('port', process.env.PORT || fs.readFileSync('port.conf', 'utf-8'));
+  app.set('port', port);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.use(express.favicon());
@@ -162,7 +170,7 @@ var refresh = function () {
 	});
 };
 
-server.listen(app.get('port'), function(){
+server.listen( app.get('port'), function(){
   console.log("Express server listening on port " + app.get('port'));
 });
 
