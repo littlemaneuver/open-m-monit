@@ -9,7 +9,15 @@ $(document).ready(function () {
 		    "class": "table table-bordered table-hover"
 		}),
 		content = $('.content');
-	var getUptime = function (seconds) {
+	var isLocalStorageAvailable = function () {
+        "use strict";
+        if (window.localStorage) {
+            return true;
+        } else {
+            return false;
+        }
+        },
+        getUptime = function (seconds) {
 			var kof = Math.floor(seconds/86400),
 				div = seconds - kof*86400,
 				days = (kof > 0) ? kof : 0,
@@ -94,10 +102,10 @@ $(document).ready(function () {
                                              "text": alias})).appendTo(row);
                 for (var i = 0; i < length; i += 1) {
                     if (processes[i].type == 3) {
-                        $('<td/>', {text: processes[i].name}).appendTo(row);
+                        $('<td/>', {text: processes[i].name, "class": "process-name"}).appendTo(row);
                         if (processes[i].uptime !== undefined) {
                             $('<td/>', {text: processes[i].pid}).appendTo(row);
-                            $('<td/>', {text: 'running'}).appendTo(row);
+                            $('<td/>', {text: 'running', "class": 'status'}).appendTo(row);
                             $('<td/>', {text: getUptime(parseInt(processes[i].uptime, 10))}).appendTo(row);
                             $('<td/>', {text: processes[i].cpu.percenttotal + '%'}).appendTo(row);
                             $('<td/>', {text: processes[i].memory.percenttotal + '% [' + processes[i].memory.kilobytetotal + 'kb]'}).appendTo(row);
@@ -105,7 +113,7 @@ $(document).ready(function () {
                         } else {
                             row.addClass('error');
                             $('<td/>').appendTo(row);
-                            $('<td/>', {text: 'stopped'}).appendTo(row);
+                            $('<td/>', {text: 'stopped', "class": 'status'}).appendTo(row);
                             $('<td/>', {text: '0'}).appendTo(row);
                             $('<td/>', {text: '0'}).appendTo(row);
                             $('<td/>', {text: '0'}).appendTo(row);
@@ -127,7 +135,36 @@ $(document).ready(function () {
                 }
                     table.find('#' + id + ' td:first-child').attr('rowspan', length - count);
             }
+        },
+        statusChange = function (basicRow, curRow, action) {
+            "use strict";
+            if (isLocalStorageAvailable()) {
+                localStorage.setItem(basicRow.find('.inform').attr('href'), curRow.find('.process-name').text() + '&' + curRow.find('.status').text());
+                curRow.removeClass('error').addClass('success').find('.status').text('waiting for response');
+            }
+        },
+        statusFromLocalStorage = function (table) {
+            "use strict";
+            var server, row, prevInform, length, i, status;
+            for (server in localStorage) {
+                prevInform = localStorage.getItem(server).split('&');
+                row = table.find('.inform[href="' + server + '"]').closest('tr');
+                length = parseInt(row.find('td').eq(0).attr('rowspan'), 10);
+                for (i = 0; i < length; i += 1, row = row.next()) {
+                    if (row.find('.process-name').text() === prevInform[0]) {
+                        status = row.find('.status');
+                        if(status.text() === prevInform[1]) {
+                            status.text('waiting for response');
+                            row.removeClass('error').addClass('success');
+                        } else {
+                            localStorage.removeItem(server);
+                        }
+                    }
+                }
+            }
         };
+
+
 	socketInfo.on('data', function (data) {
 		var tbody,
 			i;
@@ -137,14 +174,15 @@ $(document).ready(function () {
 			tbody = $('<tbody/>').appendTo(table);
 			for (i = 0; i <= len; i++) {
 				tbody.append($('<tr/>', {
-					'id': i
+					'id': i,
+                    'class': 'basic-row'
 				}));
 			}
 			$(total).each(function (i, data) {
 				buildTable(data, table);
 			}).promise().done(function () {
-					console.log(total);
                     $('.tooltip').detach();
+                    statusFromLocalStorage(table);
 					content.html(table);
 				});
 			total = [];
@@ -181,6 +219,7 @@ $(document).ready(function () {
 			href = self.data('href'),
 			action = self.data('action');
 		console.log(href, action);
+        statusChange(self.closest('.basic-row'), self.closest('tr'), action);
 		socketInfo.emit('sendData', {href: href, action: action});
 	});
 	content.delegate('.inform', 'click', function (e) {

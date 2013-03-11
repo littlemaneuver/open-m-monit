@@ -1,4 +1,4 @@
 {
-    "type": "unix",
-    "socket": "monit.sock"
+    "type": "tcp",
+    "port": 3000
 }
