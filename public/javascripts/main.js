@@ -2,9 +2,7 @@ $(document).ready(function () {
     var url = document.URL.split('/');
     url.length = 3;
     url = url.join('/');
-	var socketInfo = io.connect(url + '/info');
-	var total = [],
-		len,
+	var socketInfo = io.connect(url + '/info'),
 		table = $('<table/>', {
 		    "class": "table table-bordered table-hover"
 		}),
@@ -165,14 +163,14 @@ $(document).ready(function () {
         };
 
 
-	socketInfo.on('data', function (data) {
+	socketInfo.on('data', function (obj) {
+        console.log(obj);
 		var tbody,
-			i;
-		total.push(data);
-		if (total.length === len) {
+            i,
+            total = obj.data;
 			table.html('<thead><th>Hostname</th><th>Processes</th><th>PID</th><th>Status</th><th>Uptime</th><th>Total CPU usage</th><th>Total memory usage</th><th>Actions</th></thead>');
 			tbody = $('<tbody/>').appendTo(table);
-			for (i = 0; i <= len; i++) {
+			for (i = 0; i <= total.length; i++) {
 				tbody.append($('<tr/>', {
 					'id': i,
                     'class': 'basic-row'
@@ -186,14 +184,13 @@ $(document).ready(function () {
 					content.html(table);
 				});
 			total = [];
-		}
 	});
 	socketInfo.on('good', function (data) {
 		console.log(data);
 	});
-	socketInfo.on('length', function (data) {
-		len = data.length;
-	});
+//	socketInfo.on('length', function (data) {
+//		len = data.length;
+//	});
     content.delegate('.tooltips', 'mouseover', function () {
         "use strict";
         $(this).tooltip('show');

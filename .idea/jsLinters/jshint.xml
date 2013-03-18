@@ -3,13 +3,13 @@
   <component name="JSHintConfiguration">
     <option bitwise="true" />
     <option curly="true" />
-    <option noarg="true" />
-    <option forin="true" />
-    <option strict="true" />
-    <option noempty="true" />
-    <option undef="true" />
     <option eqeqeq="true" />
+    <option forin="true" />
+    <option noarg="true" />
+    <option noempty="true" />
     <option nonew="true" />
+    <option strict="true" />
+    <option undef="true" />
     <option browser="true" />
     <option maxerr="50" />
   </component>

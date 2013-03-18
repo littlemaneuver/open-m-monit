@@ -6,7 +6,8 @@
 var express = require('express')
   , routes = require('./routes')
   , http = require('http')
-  , path = require('path');
+  , path = require('path')
+    , cache = require('./routes/cache');
 
 var app = express(),
 	server = http.createServer(app),
@@ -17,11 +18,20 @@ var app = express(),
 	dnsList = JSON.parse(fs.readFileSync('config.json', 'utf-8')),
     connectionConf = JSON.parse(fs.readFileSync('port.json', 'utf-8')),
     clusters = Object.keys(dnsList),
-    smallDnsList =  dnsList[Object.keys(dnsList)[0]],
+    cluster = clusters[0],
+    smallDnsList =  dnsList[cluster],
 	serverInterval,
-    infoTime = 5000 * (Object.keys(smallDnsList).length + 1),
+    infoTime = 5000 * (smallDnsList.length + 1),
 	infoInterval,
-    port;
+    port,
+    totalArray = [],
+    firstTimeUse = {};
+
+clusters.forEach(function (name) {
+    "use strict";
+    firstTimeUse[name] = false;
+});
+
 if (connectionConf.type === 'tcp') {
     port = connectionConf.port;
 } else if (connectionConf.type === 'unix') {
@@ -29,13 +39,15 @@ if (connectionConf.type === 'tcp') {
 } else {
     port = 3000;
 }
+
+
 app.configure(function(){
   app.set('port', port);
   app.set('views', __dirname + '/views');
   app.set('view engine', 'jade');
   app.enable('view cache');
   app.use(express.favicon());
-  app.use(express.logger('dev'));
+  //app.use(express.logger('dev'));
   app.use(express.bodyParser());
   app.use(express.methodOverride());
   app.use(app.router);
@@ -50,7 +62,8 @@ fs.watchFile('config.json', function (current) {
     "use strict";
     dnsList = JSON.parse(fs.readFileSync('config.json', 'utf-8'));
     clusters = Object.keys(dnsList);
-    smallDnsList =  dnsList[Object.keys(dnsList)[0]];
+    cluster = clusters[0];
+    smallDnsList =  dnsList[cluster];
 });
 
 var findInform = function (hostname, data) {
@@ -61,8 +74,7 @@ var findInform = function (hostname, data) {
                 username: data[i].username,
                 password: data[i].password,
 			    hostname: data[i].hostname,
-                alias: data[i].alias,
-                grid: data[i].grid
+                alias: data[i].alias
             };
 		}
 	}
@@ -74,23 +86,25 @@ var serverInfo = io.of('/server'),
 app.get('/', function (req, res) {
     clearInterval(infoInterval);
     clearInterval(serverInformation);
-    res.redirect('/cluster/' + clusters[0]);
+    res.redirect('/cluster/' + cluster);
 
 	//res.render('index', {href: '', dnsList: Object.keys(dnsList)});
 });
 app.get('/cluster/:clusterName', function (req, res) {
     "use strict";
+    cluster = req.params.clusterName;
+    firstTimeUse[cluster] = true;
     clearInterval(infoInterval);
     clearInterval(serverInformation);
-    smallDnsList = dnsList[req.params.clusterName];
-    infoTime = 5000 * (Object.keys(smallDnsList).length + 1);
+    smallDnsList = dnsList[cluster];
+    infoTime = 5000 * (smallDnsList.length + 1);
     res.render('index', {clusters: clusters, href: ''});
 });
 app.get('/inform', function (req, res) {
     clearInterval(infoInterval);
-	var href = req.query.href.replace(/%2F/, '/').replace(/%3A/, ':'),
-        clusterName = req.query.cluster.replace(/%2F/, '/').replace(/%3A/, ':');
-    smallDnsList = dnsList[clusterName];
+	var href = req.query.href.replace(/%2F/, '/').replace(/%3A/, ':');
+    cluster = req.query.cluster.replace(/%2F/, '/').replace(/%3A/, ':');
+    smallDnsList = dnsList[cluster];
 	serverInformation = findInform(href, smallDnsList);
 	res.render('index', {clusters: clusters,
         href: serverInformation.hostname,
@@ -128,19 +142,32 @@ serverInfo.on('connection', function (socket) {
 var info = io.of('/info').on('connection', function (socket) {
     clearInterval(infoInterval);
     clearInterval(serverInformation);
-	socket.emit('length', {length: smallDnsList.length});
-	smallDnsList.forEach(function (dns, index, list) {
-		var url = 'http://' + dns.username + ':' + dns.password + '@' + dns.hostname + "/_status?format=xml";
-		request({url : url, timeout: 5000}, function (error, response, body) {
-            if (!error && response.statusCode === 200) {
-                socket.emit('data', { body: xml.parser(body), id: index, dns: dns.hostname, alias: dns.alias});
-            } else {
-                socket.emit('data', { body: {monit:{service:[]}}, id: index, dns: dns.hostname,  message: 'Your server is not available!'});
-            }
-		});
-	});
+    totalArray = cache.use(cluster);
+    if (firstTimeUse[cluster] && totalArray) {
+        socket.emit('data', {data: totalArray});
+        cache.remove(cluster);
+        firstTimeUse[cluster] = false;
+    } else {
+        totalArray = [];
+        smallDnsList.forEach(function (dns, index, list) {
+            var url = 'http://' + dns.username + ':' + dns.password + '@' + dns.hostname + "/_status?format=xml";
+            request({url : url, timeout: 5000}, function (error, response, body) {
+                if (!error && response.statusCode === 200) {
+                    totalArray.push({ body: xml.parser(body), id: index, dns: dns.hostname, alias: dns.alias});
+                } else {
+                    totalArray.push({ body: {monit:{service:[]}}, id: index, dns: dns.hostname,  message: 'Your server is not available!'});
+                }
+                if (totalArray.length === list.length) {
+                    socket.emit('data', {data: totalArray});
+                    cache.add(cluster, totalArray);
+                    totalArray = [];
+                }
+            });
+        });
+    }
 	socket.on('sendData', function (data) {
 		var information = findInform(data.href.split('/')[0], smallDnsList);
+
 		request.post({
 			url: "http://" + information.username + ":" + information.password + "@" + data.href,
 			headers: {'content-type' : 'application/x-www-form-urlencoded'},
@@ -159,16 +186,28 @@ var info = io.of('/info').on('connection', function (socket) {
 
 
 var refresh = function () {
-	smallDnsList.forEach(function (dns, index, list) {
-		var url = 'http://' + dns.username + ':' + dns.password + '@' + dns.hostname + "/_status?format=xml";
-		request({url : url, timeout: 5000}, function (error, response, body) {
-            if (!error && response.statusCode === 200) {
-                info.emit('data', { body: xml.parser(body), id: index, dns: dns.hostname, alias: dns.alias});
-            } else {
-                info.emit('data', {body: {monit:{service:[]}}, id: index, dns: dns.hostname,  message: 'Your server is not available!'});
-            }
-		});
-	});
+    totalArray = cache.use(cluster);
+    if (firstTimeUse[cluster] && totalArray) {
+        info.emit('data', {data: totalArray});
+        cache.remove(cluster);
+        firstTimeUse[cluster] = false;
+    } else {
+        totalArray = [];
+        smallDnsList.forEach(function (dns, index, list) {
+            var url = 'http://' + dns.username + ':' + dns.password + '@' + dns.hostname + "/_status?format=xml";
+            request({url : url, timeout: 5000}, function (error, response, body) {
+                if (!error && response.statusCode === 200) {
+                    totalArray.push({ body: xml.parser(body), id: index, dns: dns.hostname, alias: dns.alias});
+                } else {
+                    totalArray.push({ body: {monit:{service:[]}}, id: index, dns: dns.hostname,  message: 'Your server is not available!'});
+                }
+                if (totalArray.length === list.length) {
+                    info.emit('data', {data: totalArray});
+                    totalArray = [];
+                }
+            });
+        });
+    }
 };
 
 server.listen( app.get('port'), function(){
