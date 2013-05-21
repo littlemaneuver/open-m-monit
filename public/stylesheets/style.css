@@ -21,3 +21,8 @@ a {
     height: 400px;
     margin: auto;
 }
+a.active,
+a.active:hover {
+    font-weight: bold;
+    background: lightblue !important;
+}

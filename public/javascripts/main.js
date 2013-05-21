@@ -223,4 +223,16 @@ $(document).ready(function () {
 		e.preventDefault();
 		window.location.href = '/inform?href=' + $(this).attr('href') + '&cluster=' + document.URL.split('/')[4];
 	});
+    (function () {
+        var links = $('.nav a'),
+            name = location.pathname.split('/')[2];
+        links.removeClass('active');
+        $.each(links, function (i, link) {
+            "use strict";
+            link = $(link);
+            if (link.text() == name) {
+                link.addClass('active');
+            }
+        });
+    })();
 });

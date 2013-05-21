@@ -54,5 +54,18 @@ $(document).ready(function () {
 		};
 	serverInfo.on('serverInfo', function (data) {
 		content.html(buildTable(data));
-	})
+	});
+    (function () {
+        var links = $('.nav a'),
+            name = location.search.match(/cluster=(.+)/)[1];
+        console.log(name);
+        links.removeClass('active');
+        $.each(links, function (i, link) {
+            "use strict";
+            link = $(link);
+            if (link.text() == name) {
+                link.addClass('active');
+            }
+        });
+    })();
 });
