@@ -230,7 +230,7 @@ $(document).ready(function () {
         $.each(links, function (i, link) {
             "use strict";
             link = $(link);
-            if (link.text() == name) {
+            if (link.text() == decodeURI(name)) {
                 link.addClass('active');
             }
         });
