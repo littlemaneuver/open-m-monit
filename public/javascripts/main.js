@@ -143,22 +143,25 @@ $(document).ready(function () {
         },
         statusFromLocalStorage = function (table) {
             "use strict";
-            var server, row, prevInform, length, i, status;
+            var server, serverStatus, row, prevInform, length, i, status;
             for (server in localStorage) {
-                prevInform = localStorage.getItem(server).split('&');
-                row = table.find('.inform[href="' + server + '"]').closest('tr');
-                length = parseInt(row.find('td').eq(0).attr('rowspan'), 10);
-                for (i = 0; i < length; i += 1, row = row.next()) {
-                    if (row.find('.process-name').text() === prevInform[0]) {
-                        status = row.find('.status');
-                        if(status.text() === prevInform[1]) {
-                            status.text('waiting for response');
-                            row.removeClass('error').addClass('success');
-                        } else {
-                            localStorage.removeItem(server);
-                        }
-                    }
-                }
+            	serverStatus = server && localStorage.getItem(server);
+            	if (serverStatus) {
+	                prevInform = serverStatus.split('&');
+	                row = table.find('.inform[href="' + server + '"]').closest('tr');
+	                length = parseInt(row.find('td').eq(0).attr('rowspan'), 10);
+	                for (i = 0; i < length; i += 1, row = row.next()) {
+	                    if (row.find('.process-name').text() === prevInform[0]) {
+	                        status = row.find('.status');
+	                        if(status.text() === prevInform[1]) {
+	                            status.text('waiting for response');
+	                            row.removeClass('error').addClass('success');
+	                        } else {
+	                            localStorage.removeItem(server);
+	                        }
+	                    }
+	                }
+            	}
             }
         };
 
