@@ -46,7 +46,7 @@ $(document).ready(function () {
 		},
 		buildTable = function (data) {
 			div = $('<div/>');
-			div.append('<h2>Paltform</h2>')
+			div.append('<h2>Platform</h2>')
 				.append(buildInform(data.platform))
 				.append('<h2>Server</h2>')
 				.append(buildInform(data.server));
