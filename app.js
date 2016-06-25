@@ -111,8 +111,16 @@ app.get('/inform', function (req, res) {
         alias: serverInformation.alias});
 });
 
+var getProtocol = function (config) {
+  return (config.protocol || 'http') + '://';
+};
+
+var buildBaseUrl = function (config) {
+  return getProtocol(config) + config.username + ':' + config.password + '@' + config.hostname + "/_status?format=xml";
+}
+
 var refreshServer = function () {
-	var url = 'http://' + serverInformation.username + ':' + serverInformation.password + '@' + serverInformation.hostname + "/_status?format=xml";
+	var url =  buildBaseUrl(serverInformation);
 	request({url : url, timeout: 5000}, function (error, response, body) {
         if (!error && response.statusCode === 200) {
             body = xml.parser(body).monit;
@@ -126,7 +134,7 @@ var refreshServer = function () {
 serverInfo.on('connection', function (socket) {
     clearInterval(infoInterval);
     clearInterval(serverInformation);
-	var url = 'http://' + serverInformation.username + ':' + serverInformation.password + '@' + serverInformation.hostname + "/_status?format=xml";
+	var url = buildBaseUrl(serverInformation) + "/_status?format=xml";
 	request({url : url, timeout: 5000}, function (error, response, body) {
         if (!error && response.statusCode === 200) {
             body = xml.parser(body).monit;
@@ -150,7 +158,7 @@ var info = io.of('/info').on('connection', function (socket) {
     } else {
         totalArray = [];
         smallDnsList.forEach(function (dns, index, list) {
-            var url = 'http://' + dns.username + ':' + dns.password + '@' + dns.hostname + "/_status?format=xml";
+            var url = buildBaseUrl(dns) + ;
             request({url : url, timeout: 5000}, function (error, response, body) {
                 if (!error && response.statusCode === 200) {
                     totalArray.push({ body: xml.parser(body), id: index, dns: dns.hostname, alias: dns.alias});
@@ -169,7 +177,7 @@ var info = io.of('/info').on('connection', function (socket) {
 		var information = findInform(data.href.split('/')[0], smallDnsList);
 
 		request.post({
-			url: "http://" + information.username + ":" + information.password + "@" + data.href,
+			url: getProtocol(information) + information.username + ":" + information.password + "@" + data.href,
 			headers: {'content-type' : 'application/x-www-form-urlencoded'},
 			body: 'action=' + data.action
 		}, function (error, response, body) {
@@ -194,7 +202,7 @@ var refresh = function () {
     } else {
         totalArray = [];
         smallDnsList.forEach(function (dns, index, list) {
-            var url = 'http://' + dns.username + ':' + dns.password + '@' + dns.hostname + "/_status?format=xml";
+            var url = buildBaseUrl(dns);
             request({url : url, timeout: 5000}, function (error, response, body) {
                 if (!error && response.statusCode === 200) {
                     totalArray.push({ body: xml.parser(body), id: index, dns: dns.hostname, alias: dns.alias});

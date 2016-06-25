@@ -10,8 +10,9 @@
             {
             "hostname": "serverHostname or ip and port",
             "username": "baseAuth username",
-            "password": "your baseAuth passwrrd",
-            "alias"   : "aliasName(optional)"
+            "password": "your baseAuth password",
+            "protocol": "https(optional, http by default)",
+            "alias"   : "aliasName(optional, means short name)"
             },
             ....
         ],
