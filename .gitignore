@@ -5,4 +5,5 @@
 config.json
 .idea/
 projectFilesBackup/
+node_modules/
 .DS_store
