@@ -117,11 +117,11 @@ var getProtocol = function (config) {
 
 var buildBaseUrl = function (config) {
   return getProtocol(config) + config.username + ':' + config.password + '@' + config.hostname + "/_status?format=xml";
-}
+};
 
 var refreshServer = function () {
 	var url =  buildBaseUrl(serverInformation);
-	request({url : url, timeout: 5000}, function (error, response, body) {
+	request({url : url, timeout: 5000, strictSSL: false}, function (error, response, body) {
         if (!error && response.statusCode === 200) {
             body = xml.parser(body).monit;
             serverInfo.emit('serverInfo', {platform : body.platform, server: body.server, dns: serverInformation.hostname, alias: serverInformation.alias});
@@ -135,7 +135,7 @@ serverInfo.on('connection', function (socket) {
     clearInterval(infoInterval);
     clearInterval(serverInformation);
 	var url = buildBaseUrl(serverInformation) + "/_status?format=xml";
-	request({url : url, timeout: 5000}, function (error, response, body) {
+	request({url : url, timeout: 5000, strictSSL: false}, function (error, response, body) {
         if (!error && response.statusCode === 200) {
             body = xml.parser(body).monit;
             serverInfo.emit('serverInfo', {platform : body.platform, server: body.server, dns: serverInformation.hostname, alias: serverInformation.alias});
@@ -159,7 +159,7 @@ var info = io.of('/info').on('connection', function (socket) {
         totalArray = [];
         smallDnsList.forEach(function (dns, index, list) {
             var url = buildBaseUrl(dns);
-            request({url : url, timeout: 5000}, function (error, response, body) {
+            request({url : url, timeout: 5000, strictSSL: false}, function (error, response, body) {
                 if (!error && response.statusCode === 200) {
                     totalArray.push({ body: xml.parser(body), id: index, dns: dns.hostname, alias: dns.alias});
                 } else {
@@ -179,6 +179,7 @@ var info = io.of('/info').on('connection', function (socket) {
 		request.post({
 			url: getProtocol(information) + information.username + ":" + information.password + "@" + data.href,
 			headers: {'content-type' : 'application/x-www-form-urlencoded'},
+      strictSSL: false,
 			body: 'action=' + data.action
 		}, function (error, response, body) {
             if (!error && response.statusCode === 200) {
@@ -203,7 +204,7 @@ var refresh = function () {
         totalArray = [];
         smallDnsList.forEach(function (dns, index, list) {
             var url = buildBaseUrl(dns);
-            request({url : url, timeout: 5000}, function (error, response, body) {
+            request({url : url, timeout: 5000, strictSSL: false}, function (error, response, body) {
                 if (!error && response.statusCode === 200) {
                     totalArray.push({ body: xml.parser(body), id: index, dns: dns.hostname, alias: dns.alias});
                 } else {
