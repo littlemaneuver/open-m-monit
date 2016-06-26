@@ -158,7 +158,7 @@ var info = io.of('/info').on('connection', function (socket) {
     } else {
         totalArray = [];
         smallDnsList.forEach(function (dns, index, list) {
-            var url = buildBaseUrl(dns) + ;
+            var url = buildBaseUrl(dns);
             request({url : url, timeout: 5000}, function (error, response, body) {
                 if (!error && response.statusCode === 200) {
                     totalArray.push({ body: xml.parser(body), id: index, dns: dns.hostname, alias: dns.alias});
