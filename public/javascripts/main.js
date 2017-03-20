@@ -99,7 +99,7 @@ $(document).ready(function () {
                                              "href": dns,
                                              "text": alias})).appendTo(row);
                 for (var i = 0; i < length; i += 1) {
-		    /* disk */
+                    /* disk */
                     if (processes[i].type == 0) {
                         $('<td/>', {text: processes[i].name, "class": "process-name"}).appendTo(row);
                         if (processes[i].collected_sec !== undefined) {
@@ -109,7 +109,7 @@ $(document).ready(function () {
                             $('<td/>', {text: processes[i].block.percent + '%'}).appendTo(row);
                             $('<td/>', {text: processes[i].inode.percent + '%'}).appendTo(row);
                             $(buildActionMenu(dns + '/' + processes[i].name)).appendTo(row);
-			} else {
+                        } else {
                             row.addClass('error');
                             $('<td/>').appendTo(row);
                             $('<td/>', {text: 'stopped', "class": 'status'}).appendTo(row);
@@ -125,10 +125,10 @@ $(document).ready(function () {
                             }).append($('<i/>', {"class": "center icon-eye-open",
                                                 "data-href": dns + '/' + processes[i].name,
                                                 "data-action": "monitor"}))).appendTo(row);
-			}
+                        }
                         row.after($('<tr/>'));
                         row = row.next();
-		    } else if (processes[i].type == 3) {
+                    } else if (processes[i].type == 3) {
                         $('<td/>', {text: processes[i].name, "class": "process-name"}).appendTo(row);
                         if (processes[i].uptime !== undefined) {
                             $('<td/>', {text: processes[i].pid}).appendTo(row);
@@ -156,8 +156,37 @@ $(document).ready(function () {
                         }
                         row.after($('<tr/>'));
                         row = row.next();
-		    } else if (processes[i].type == 8) {
-			/* network interface */
+                    } else if (processes[i].type == 7) {
+                        /* program (this allows you to run arbitrary script and check exit status) */
+                        $('<td/>', {text: processes[i].name, "class": "process-name"}).appendTo(row);
+                        if (processes[i].program.status === 0) {
+                            $('<td/>').appendTo(row);
+                            $('<td/>', {text: 'Status OK', "class": 'status'}).appendTo(row);
+                            $('<td/>').appendTo(row);
+                            $('<td/>').appendTo(row);
+                            $('<td/>').appendTo(row);
+                            $(buildActionMenu(dns + '/' + processes[i].name)).appendTo(row);
+                        } else {
+                            row.addClass('error');
+                            $('<td/>').appendTo(row);
+                            $('<td/>', {text: 'Status Fail', "class": 'status'}).appendTo(row);
+                            $('<td/>').appendTo(row);
+                            $('<td/>').appendTo(row);
+                            $('<td/>').appendTo(row);
+                            $('<td/>').append($('<a/>', {
+                                "class": "tooltips",
+                                "data-original-title": "Watch process",
+                                "data-placement": "top",
+                                "data-delay": {show: 300, hide: 200},
+                                "href": "#"
+                            }).append($('<i/>', {"class": "center icon-eye-open",
+                                                "data-href": dns + '/' + processes[i].name,
+                                                "data-action": "monitor"}))).appendTo(row);
+                        }
+                        row.after($('<tr/>'));
+                        row = row.next();
+                    } else if (processes[i].type == 8) {
+                        /* network interface */
                         $('<td/>', {text: processes[i].name, "class": "process-name"}).appendTo(row);
                         if (processes[i].state !== 1) {
                             $('<td/>', {text: processes[i].pid}).appendTo(row);
