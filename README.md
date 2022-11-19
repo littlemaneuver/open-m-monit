@@ -1,7 +1,7 @@
-#Open-m-monit on Nodejs
+# Open-m-monit on Nodejs
 
 
-###how to run
+### how to run
 1. Create the file config.json and add your monit servers:
 
 ```javascript
