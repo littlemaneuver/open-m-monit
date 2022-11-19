@@ -1,7 +1,7 @@
 #Open-m-monit on Nodejs
 
 
-###Clone this repo and do the follow:
+###how to run
 1. Create the file config.json and add your monit servers:
 
 ```javascript
@@ -35,7 +35,7 @@ or:
     "socket": "path_to_file"
 }
 ```
-3. Get inside the containing directory (if you haven't already) and type `node app` 
+3. run `node app` 
 Your open-m-monit is at `your.hostname:port`.
 
 All information about m-monit is available [here](http://mmonit.com/).
